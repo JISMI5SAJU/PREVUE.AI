@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import axios from "axios"
 import styles from "./SignUpForm.module.css"
 
 export default function SignUpForm({ onSuccess }) {
@@ -14,7 +15,7 @@ export default function SignUpForm({ onSuccess }) {
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
 
-  // Simple email regex — client-side validation only
+  // Simple email regex
   const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i, [])
 
   // Password strength score 0..3
@@ -27,7 +28,7 @@ export default function SignUpForm({ onSuccess }) {
     return score
   }, [password])
 
-  // Validate fields in real-time
+  // Real-time validation
   useEffect(() => {
     const errs = {}
 
@@ -55,6 +56,7 @@ export default function SignUpForm({ onSuccess }) {
     setFieldErrors({})
   }
 
+  // CONNECTING TO BACKEND
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -62,7 +64,6 @@ export default function SignUpForm({ onSuccess }) {
     setLoading(true)
 
     try {
-      // Final validation
       if (!isFormValid) {
         setFieldErrors((prev) => ({
           ...prev,
@@ -71,41 +72,28 @@ export default function SignUpForm({ onSuccess }) {
         throw new Error("Validation failed")
       }
 
-      // Simulate API latency
-      await new Promise((res) => setTimeout(res, 500))
+      // 📌 Replace localStorage logic with REAL backend call
+      const res = await axios.post("http://localhost:3000/api/signup", {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        },
+        { withCredentials: true }
+      )
 
-      // NOTE: For demo only — do NOT store plaintext passwords in localStorage in production.
-      // Use a server + secure password hashing (bcrypt/argon2) over HTTPS.
-      const storedUsers = JSON.parse(localStorage.getItem("users") || "[]")
-
-      if (storedUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-        throw new Error("Email is already registered")
-      }
-
-      const newUser = {
-        id: Date.now().toString(),
-        name: name.trim(),
-        email: email.trim(),
-        // storing plaintext passwords is insecure — recommended only for mock/demo apps
-        password,
-        createdAt: new Date().toISOString(),
-      }
-
-      storedUsers.push(newUser)
-      localStorage.setItem("users", JSON.stringify(storedUsers))
-
-      // Clear sensitive fields
+      // If backend returns success
+      setSuccessMessage(res.data?.message || "Account created successfully.")
       resetForm()
 
-      setSuccessMessage("Account created successfully.")
+      // Pass user info back to parent
       onSuccess &&
         onSuccess({
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
+          name: res.data?.user?.name,
+          email: res.data?.user?.email,
+          id: res.data?.user?._id,
         })
     } catch (err) {
-      setError(err?.message || "Something went wrong")
+      setError(err?.response?.data?.message || err.message || "Something went wrong")
     } finally {
       setLoading(false)
     }
@@ -115,9 +103,9 @@ export default function SignUpForm({ onSuccess }) {
     <form onSubmit={handleSubmit} className={styles.form} noValidate>
       <div className={styles.header}>
         <h2 className={styles.title}>Create an account</h2>
-        {/* <p className={styles.subtitle}>Start your journey with us — it’s quick and easy.</p> */}
       </div>
 
+      {/* Name */}
       <div className={styles.formRow}>
         <label htmlFor="name" className={styles.label}>
           Full name
@@ -141,6 +129,7 @@ export default function SignUpForm({ onSuccess }) {
         )}
       </div>
 
+      {/* Email */}
       <div className={styles.formRow}>
         <label htmlFor="email" className={styles.label}>
           Email
@@ -165,7 +154,7 @@ export default function SignUpForm({ onSuccess }) {
         )}
       </div>
 
-      {/* Password field */}
+      {/* Password */}
       <div className={styles.formRow}>
         <label htmlFor="password" className={styles.label}>
           Password
@@ -182,7 +171,9 @@ export default function SignUpForm({ onSuccess }) {
             placeholder="Create a strong password"
             disabled={loading}
             aria-invalid={!!fieldErrors.password}
-            aria-describedby={fieldErrors.password ? "password-error" : "password-strength-desc"}
+            aria-describedby={
+              fieldErrors.password ? "password-error" : "password-strength-desc"
+            }
             autoComplete="new-password"
           />
           <button
@@ -196,7 +187,7 @@ export default function SignUpForm({ onSuccess }) {
           </button>
         </div>
 
-        {/* Strength label above the bar + word indicator on right */}
+        {/* Password strength meter */}
         <div id="password-strength-desc" className={styles.strengthContainer}>
           <div className={styles.strengthTop}>
             <div className={styles.strengthLabelTop}>Strength</div>
@@ -237,6 +228,7 @@ export default function SignUpForm({ onSuccess }) {
         )}
       </div>
 
+      {/* Confirm Password */}
       <div className={styles.formRow}>
         <label htmlFor="confirmPassword" className={styles.label}>
           Confirm password
@@ -261,11 +253,13 @@ export default function SignUpForm({ onSuccess }) {
         )}
       </div>
 
+      {/* Errors */}
       <div aria-live="polite" className={styles.ariaLive}>
         {error && <div className={styles.error}>{error}</div>}
         {successMessage && <div className={styles.success}>{successMessage}</div>}
       </div>
 
+      {/* Submit */}
       <button
         type="submit"
         className={styles.button}
@@ -276,7 +270,8 @@ export default function SignUpForm({ onSuccess }) {
       </button>
 
       <div className={styles.footerNote}>
-        By creating an account you agree to our <a href="#" className={styles.link}>Terms</a> and{" "}
+        By creating an account you agree to our{" "}
+        <a href="#" className={styles.link}>Terms</a> and{" "}
         <a href="#" className={styles.link}>Privacy Policy</a>.
       </div>
     </form>

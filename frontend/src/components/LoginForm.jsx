@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import styles from "./LoginForm.module.css"
+import axios from "axios"
 
 const EMAIL_REGEX =
   // simple, practical email regex (not perfect but good for validation)
@@ -68,26 +69,26 @@ export default function LoginForm({ onSuccess, onForgot }) {
 
     setLoading(true)
     try {
-      // simulate API call (replace with real API)
-      await new Promise((res) => setTimeout(res, 700))
+      const res = await axios.post(
+        "http://localhost:3000/api/signin", 
+        {
+          email, 
+          password
+        },
+        {
+          withCredentials: true 
+        }
+      )
 
-      // Mock localStorage check (replace with real auth)
-      const storedUsers = JSON.parse(localStorage.getItem("users") || "[]")
-      const user = storedUsers.find((u) => u.email === email && u.password === password)
+      onSuccess?.(res.data)
 
-      if (!user) {
-        setFormError("Invalid email or password")
-        return
-      }
-
-      // success callback
-      onSuccess?.({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      })
     } catch (err) {
-      setFormError("Something went wrong. Please try again.")
+      if (err.response) {
+        // Error from backend
+        setFormError(err.response.data.message || "Invalid username or password")
+      } else {
+        setFormError("Something went wrong. Please try again.")
+      }
     } finally {
       setLoading(false)
     }

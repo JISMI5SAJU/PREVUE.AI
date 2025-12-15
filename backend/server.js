@@ -3,6 +3,8 @@ import cors from 'cors';
 import connectDB from "./utils/db.js";
 import dotenv from 'dotenv';
 
+import authRoutes from "./Routes/authRoutes.js";
+
 dotenv.config();
 
 
@@ -16,6 +18,7 @@ const corsOptions = {
 // Middleware
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use("/api", authRoutes);
 
 connectDB().then(() =>{
     app.listen(PORT, () => {
