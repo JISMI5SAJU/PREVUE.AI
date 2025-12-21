@@ -1,60 +1,165 @@
 "use client"
 
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import AuthContext from "../context/AuthContext"
 import InterviewSetup from "../components/InterviewSetup"
 import InterviewHistory from "../components/InterviewHistory"
+import Dashboard from "../components/Dashboard"
+import ProfileModal from "../components/ProfileModal"
 import styles from "./Home.module.css"
 
 export default function Home() {
-  const { user, handleLogout } = useContext(AuthContext)
+  const { user: ctxUser, handleLogout, updateUser } = useContext(AuthContext) || {}
+
+  // Local UI user state
+  const [user, setUser] = useState(ctxUser ?? { name: "User", avatar: null })
   const [currentPage, setCurrentPage] = useState("home")
+  const [profileOpen, setProfileOpen] = useState(false)
+
+  // Sync context -> local UI user
+  useEffect(() => {
+    if (ctxUser) setUser(ctxUser)
+  }, [ctxUser])
+
+  const handleSaveProfile = (newData) => {
+    setUser((prev) => ({ ...prev, ...newData }))
+
+    if (typeof updateUser === "function") {
+      updateUser(newData)
+    }
+
+    setProfileOpen(false)
+  }
 
   return (
     <div className={styles.container}>
+      
+      {/* NAVBAR */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>PREVUE.AI</h1>
-          <div className={styles.userInfo}>
-            <span>Welcome, {user.name}</span>
+
+          <nav className={styles.navbarRight}>
+            
+            {/* HOME */}
+            <button
+              onClick={() => setCurrentPage("home")}
+              className={`${styles.navItem} ${currentPage === "home" ? styles.active : ""}`}
+            >
+              Home
+            </button>
+
+            {/* DASHBOARD */}
+            <button
+              onClick={() => setCurrentPage("dashboard")}
+              className={`${styles.navItem} ${currentPage === "dashboard" ? styles.active : ""}`}
+            >
+              Dashboard
+            </button>
+
+            {/* HISTORY */}
+            <button
+              onClick={() => setCurrentPage("history")}
+              className={`${styles.navItem} ${currentPage === "history" ? styles.active : ""}`}
+            >
+              Interview History
+            </button>
+
+            {/* ABOUT */}
+            <button
+              onClick={() => alert("About section coming soon!")}
+              className={styles.navItem}
+            >
+              About Us
+            </button>
+
+            {/* AVATAR */}
+            <button
+              className={styles.avatarBtn}
+              onClick={() => setProfileOpen(true)}
+            >
+              <img
+                src={user?.avatar || "/images/placeholder-avatar.png"}
+                alt="avatar"
+                className={styles.avatar}
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = "/placeholder-avatar.png"
+                }}
+              />
+            </button>
+
             <button onClick={handleLogout} className={styles.logoutBtn}>
               Log Out
             </button>
-          </div>
+
+          </nav>
         </div>
       </header>
 
+      {/* MAIN CONTENT */}
       <main className={styles.main}>
-        <div className={styles.navigation}>
-          <button
-            onClick={() => setCurrentPage("home")}
-            className={`${styles.navBtn} ${currentPage === "home" ? styles.active : ""}`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setCurrentPage("history")}
-            className={`${styles.navBtn} ${currentPage === "history" ? styles.active : ""}`}
-          >
-            Interview History
-          </button>
-        </div>
-
         <div className={styles.content}>
+
+          {/* HOME PAGE */}
           {currentPage === "home" && (
-            <div className={styles.homeContent}>
-              <h2>Ready to practice?</h2>
-              <button onClick={() => setCurrentPage("interview")} className={styles.startBtn}>
-                Start Interview
-              </button>
-            </div>
+            <section className={styles.hero}>
+              <h2 className={styles.heroTitle}>Ace Your Next Interview</h2>
+              <p className={styles.heroSubtitle}>
+                Practice technical, HR and behavioral interviews with AI-powered evaluation.
+              </p>
+
+              <div className={styles.heroActions}>
+  <button
+    onClick={() => setCurrentPage("interview")}
+    className={styles.getStartedBtn}
+  >
+    Get Started
+  </button>
+</div>
+
+              {/* FEATURES */}
+              <div className={styles.featuresRow}>
+                <div className={styles.featureCard}>
+                  <h4>Mock Tech Interviews</h4>
+                  <p>Timed questions with score & feedback.</p>
+                </div>
+                <div className={styles.featureCard}>
+                  <h4>Behavioral Practice</h4>
+                  <p>Refine answers for HR rounds.</p>
+                </div>
+                <div className={styles.featureCard}>
+                  <h4>Analytics</h4>
+                  <p>Track progress over time.</p>
+                </div>
+              </div>
+            </section>
           )}
 
+          {/* DASHBOARD */}
+          {currentPage === "dashboard" && <Dashboard />}
+
+          {/* HISTORY */}
           {currentPage === "history" && <InterviewHistory />}
 
-          {currentPage === "interview" && <InterviewSetup onBack={() => setCurrentPage("home")} />}
+          {/* INTERVIEW SETUP */}
+          {currentPage === "interview" && (
+            <InterviewSetup onBack={() => setCurrentPage("home")} />
+          )}
         </div>
       </main>
+
+      {/* PROFILE MODAL — with key (prevents flicker) */}
+      {profileOpen && (
+        <ProfileModal
+          key="profile-modal"
+          initialName={user?.name ?? ""}
+          initialAvatar={user?.avatar ?? null}
+          onClose={() => setProfileOpen(false)}
+          onSave={handleSaveProfile}
+        />
+      )}
+
     </div>
   )
 }

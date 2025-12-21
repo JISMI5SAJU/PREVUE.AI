@@ -1,0 +1,247 @@
+/* Dashboard.module.css
+   Clean, modern dashboard styling for PREVUE.AI
+   - Responsive
+   - KPI cards, chart area, recent interviews list
+*/
+
+/* Container */
+.container {
+  width: 100%;
+  background: transparent;
+  padding: 18px 0;
+  box-sizing: border-box;
+}
+
+/* Title / Header */
+.container > h2 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.container > p {
+  margin: 0 0 20px 0;
+  color: #556;
+  font-size: 14px;
+}
+
+/* Grid wrapper for top section */
+.topGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 18px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+
+/* KPI Cards (top-left area) */
+.kpiCard {
+  grid-column: span 3;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(16, 24, 40, 0.08);
+}
+
+.kpiTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.kpiValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* Large card for charts (top-right area) */
+.chartsCard {
+  grid-column: span 6;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chartsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chartsTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* placeholder area where you'll mount a chart component */
+.chartPlaceholder {
+  flex: 1;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9aa4bf;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px dashed rgba(102,126,234,0.12);
+}
+
+/* Right column (summary / actions) */
+.sideCard {
+  grid-column: span 3;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sideTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
+}
+
+.sideItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #444;
+  padding: 8px 6px;
+  border-radius: 8px;
+}
+
+/* Recent interviews / table */
+.recentSection {
+  margin-top: 20px;
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
+}
+
+.recentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recentTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 8px;
+  color: #556;
+  border-bottom: 1px solid #f0f2f7;
+}
+
+.table tbody td {
+  padding: 12px 8px;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #f5f6fb;
+}
+
+/* small status pill */
+.status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status.success {
+  background: #e9f8ef;
+  color: #1f8a4c;
+}
+
+.status.warn {
+  background: #fff7e6;
+  color: #b86b00;
+}
+
+.status.info {
+  background: #eef2ff;
+  color: #3356d1;
+}
+
+/* Action buttons */
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  background: #667eea;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #667eea;
+  border: 1px solid rgba(102,126,234,0.12);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Small responsive tweaks */
+@media (max-width: 1100px) {
+  .kpiCard { grid-column: span 4; }
+  .chartsCard { grid-column: span 8; }
+  .sideCard { grid-column: span 12; }
+}
+
+@media (max-width: 860px) {
+  .topGrid { grid-template-columns: repeat(6, 1fr); }
+  .kpiCard { grid-column: span 3; }
+  .chartsCard { grid-column: span 6; min-height: 180px; }
+  .sideCard { grid-column: span 6; }
+}
+
+@media (max-width: 600px) {
+  .topGrid { grid-template-columns: repeat(1, 1fr); }
+  .kpiCard, .chartsCard, .sideCard { grid-column: span 1; }
+  .kpiCard { min-height: 84px; }
+  .chartPlaceholder { min-height: 140px; }
+  .recentSection { padding: 12px; }
+  .table thead th, .table tbody td { padding: 8px 6px; font-size: 13px; }
+}
