@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Mic,
-  MicOff,
   Video,
   VideoOff,
   ChevronRight,
@@ -39,8 +37,8 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
 
   const [answer, setAnswer] = useState("");
   const [listening, setListening] = useState(false);
-
   const [cameraOn, setCameraOn] = useState(false);
+  const [mediaOn, setMediaOn] = useState(false);
   const [mediaError, setMediaError] = useState("");
 
   const [interviewComplete, setInterviewComplete] = useState(false);
@@ -116,7 +114,7 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
     if (cameraOn) return;
     try {
       setMediaError("");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
       setCameraOn(true);
@@ -125,29 +123,29 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
     }
   };
 
-  const toggleCamera = async () => {
-    if (cameraOn) {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-      videoRef.current.srcObject = null;
-      setCameraOn(false);
-    } else {
-      await startCamera();
-    }
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setCameraOn(false);
   };
 
   /* ---------------- Mic toggle (AUTO START CAMERA) ---------------- */
-  const toggleMic = async () => {
+  const toggleMedia = async () => {
     initSpeech();
     if (!recognitionRef.current) return;
 
-    if (!listening) {
-      await startCamera(); // 🎯 AUTO START CAMERA
+    if (!mediaOn) {
+      await startCamera();
       recognitionRef.current.start();
+      setListening(true);
+      setMediaOn(true);
     } else {
       recognitionRef.current.stop();
+      setListening(false);
+      stopCamera();
+      setMediaOn(false);
     }
-    setListening(!listening);
   };
 
   /* ---------------- Next / Finish ---------------- */
@@ -158,7 +156,7 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
       setInterviewComplete(true);
       setGeneratingFeedback(true);
       recognitionRef.current?.stop();
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      stopCamera();
       const fb = await mockAiService.generateFeedback();
       setFeedback(fb);
       setGeneratingFeedback(false);
@@ -235,12 +233,10 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
 
             <div className={styles.actions}>
               <button
-                onClick={toggleMic}
-                className={`${styles.iconBtn} ${
-                  listening ? styles.micActive : ""
-                }`}
+                onClick={toggleMedia}
+                className={`${styles.iconBtn} ${mediaOn ? styles.micActive : ""}`}
               >
-                {listening ? <MicOff /> : <Mic />}
+                {mediaOn ? <Video /> : <VideoOff />}
               </button>
 
               <button onClick={handleNext} className={styles.nextBtn}>
@@ -258,9 +254,6 @@ export default function InterviewFlow({ role = "Frontend Developer", onBack }) {
           >
             <div className={styles.cameraHeader}>
               <Camera /> Camera
-              <button onClick={toggleCamera} className={styles.cameraToggle}>
-                {cameraOn ? <VideoOff /> : <Video />}
-              </button>
             </div>
 
             <div className={styles.videoBox}>

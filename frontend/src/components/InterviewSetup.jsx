@@ -26,11 +26,10 @@ export default function InterviewSetup({ onBack }) {
 
   return (
     <div className={styles.container}>
-      <button onClick={onBack} className={styles.backBtn}>
-        ← Back
-      </button>
 
       <div className={styles.card}>
+        <button onClick={onBack} className={styles.backBtn}> <i className="fa-solid fa-arrow-left"></i> </button>
+
         <h2>Configure Your Interview</h2>
 
         <div className={styles.section}>

@@ -2,7 +2,7 @@
 
 import { useState, useContext, useEffect } from "react"
 import AuthContext from "../context/AuthContext"
-import InterviewSetup from "../components/InterviewSetup"
+import InterviewSetup from "../components/InterviewSetup.jsx"
 import InterviewHistory from "../components/InterviewHistory"
 import Dashboard from "../components/Dashboard"
 import ProfileModal from "../components/ProfileModal"
@@ -33,14 +33,14 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      
+
       {/* NAVBAR */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.logo}>PREVUE.AI</h1>
 
           <nav className={styles.navbarRight}>
-            
+
             {/* HOME */}
             <button
               onClick={() => setCurrentPage("home")}
@@ -110,13 +110,13 @@ export default function Home() {
               </p>
 
               <div className={styles.heroActions}>
-  <button
-    onClick={() => setCurrentPage("interview")}
-    className={styles.getStartedBtn}
-  >
-    Get Started
-  </button>
-</div>
+                <button
+                  onClick={() => setCurrentPage("interview")}
+                  className={styles.getStartedBtn}
+                >
+                  Get Started
+                </button>
+              </div>
 
               {/* FEATURES */}
               <div className={styles.featuresRow}>
@@ -149,7 +149,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* PROFILE MODAL — with key (prevents flicker) */}
       {profileOpen && (
         <ProfileModal
           key="profile-modal"

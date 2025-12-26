@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import AuthContext from "./context/AuthContext"
 import AuthPage from "./pages/AuthPage"
 import Home from "./pages/Home"
