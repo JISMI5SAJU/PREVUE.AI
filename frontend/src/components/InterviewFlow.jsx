@@ -20,6 +20,8 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [askedQuestions, setAskedQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [voice, setVoice] = useState(null);
 
   const [answer, setAnswer] = useState("");
   const [listening, setListening] = useState(false);
@@ -110,6 +112,63 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
       textareaRef.current.scrollHeight + "px";
   }, [answer]);
 
+  /* ---------------- Speak question out loud ---------------- */
+  const selectPreferredVoice = () => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) return;
+    const englishVoices = voices.filter((v) => (v.lang || "").toLowerCase().startsWith("en"));
+    // Prefer premium/enhanced voices: Google UK/US Enhanced, Microsoft Natural, or Samantha
+    const preferred =
+      englishVoices.find((v) => /enhanced|natural|premium|samantha/i.test(v.name)) ||
+      englishVoices.find((v) => /google.*uk|google.*us/i.test(v.name)) ||
+      englishVoices.find((v) => /microsoft/i.test(v.name)) ||
+      englishVoices.find((v) => /female|uk|us/i.test(v.name)) ||
+      englishVoices[0] ||
+      voices[0];
+    setVoice(preferred || null);
+  };
+
+  useEffect(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    // Load voices immediately and also when the list updates
+    const handleVoicesChanged = () => selectPreferredVoice();
+    selectPreferredVoice();
+    synth.onvoiceschanged = handleVoicesChanged;
+    return () => {
+      if (synth) synth.onvoiceschanged = null;
+    };
+  }, []);
+
+  const speak = (text) => {
+    if (!ttsEnabled || !text) return;
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    try {
+      synth.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      if (voice) utter.voice = voice;
+      utter.lang = (voice && voice.lang) || "en-US";
+      utter.rate = 0.9; // slower and more conversational
+      utter.pitch = 1.0; // neutral natural pitch
+      utter.volume = 0.95; // slightly softer for warmth
+      synth.speak(utter);
+    } catch (_) {
+      // Ignore TTS errors silently
+    }
+  };
+
+  useEffect(() => {
+    if (currentQuestion) {
+      speak(currentQuestion);
+    }
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, [currentQuestion, ttsEnabled]);
+
   /* ---------------- Reset per question ---------------- */
   useEffect(() => {
     recognitionRef.current?.stop();
@@ -137,6 +196,17 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
     if (videoRef.current) videoRef.current.srcObject = null;
     setCameraOn(false);
   };
+
+  // Re-attach stream to video when UI re-mounts after loading
+  useEffect(() => {
+    if (!loading && cameraOn && videoRef.current && streamRef.current) {
+      try {
+        videoRef.current.srcObject = streamRef.current;
+      } catch (_) {
+        // ignore re-attach errors
+      }
+    }
+  }, [loading, cameraOn]);
 
   /* ---------------- Mic toggle (AUTO START CAMERA) ---------------- */
   const toggleMedia = async () => {
@@ -311,7 +381,7 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
             </div>
 
             <div className={styles.videoBox}>
-              <video ref={videoRef} autoPlay muted className={styles.video} />
+              <video ref={videoRef} autoPlay muted playsInline className={styles.video} />
               {!cameraOn && (
                 <div className={styles.overlay}>
                   <VideoOff />
