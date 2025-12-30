@@ -8,8 +8,6 @@ import {
   Loader2,
   Camera,
   MessageSquare,
-  Mic,
-  MicOff,
 } from "lucide-react";
 import styles from "./InterviewFlow.module.css";
 
@@ -225,9 +223,7 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
     if (!synth) return;
     try {
       synth.cancel();
-      // Remove backticks before speaking
-      const cleanText = String(text).replace(/`/g, "");
-      const utter = new SpeechSynthesisUtterance(cleanText);
+      const utter = new SpeechSynthesisUtterance(text);
       if (voice) utter.voice = voice;
       utter.lang = (voice && voice.lang) || "en-US";
       utter.rate = 0.9; // slower and more conversational
@@ -298,15 +294,6 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
       stopRecording();
       stopCamera();
       setMediaOn(false);
-    }
-  };
-
-  /* ---------------- Camera toggle (separate from mic) ---------------- */
-  const toggleCamera = async () => {
-    if (cameraOn) {
-      stopCamera();
-    } else {
-      await startCamera();
     }
   };
 
@@ -440,23 +427,12 @@ export default function InterviewFlow({ role = "Frontend Developer", mode = "Tec
             />
 
             <div className={styles.actions}>
-              <div className={styles.iconGroup}>
-                <button
-                  onClick={toggleMic}
-                  className={`${styles.iconBtn} ${mediaOn ? styles.micActive : ""}`}
-                  title="Toggle Microphone"
-                >
-                  {mediaOn ? <Mic /> : <MicOff />}
-                </button>
-
-                <button
-                  onClick={toggleCamera}
-                  className={`${styles.iconBtn} ${cameraOn ? styles.cameraActive : ""}`}
-                  title="Toggle Camera"
-                >
-                  {cameraOn ? <Video /> : <VideoOff />}
-                </button>
-              </div>
+              <button
+                onClick={toggleMedia}
+                className={`${styles.iconBtn} ${mediaOn ? styles.micActive : ""}`}
+              >
+                {mediaOn ? <Video /> : <VideoOff />}
+              </button>
 
               <button onClick={handleNext} className={styles.nextBtn}>
                 {isLast ? "Finish Interview" : "Next"}
