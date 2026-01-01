@@ -54,7 +54,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1978A9;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.08);
 }
 
@@ -114,7 +114,7 @@
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #667eea;
+  accent-color: #1978A9;
 }
 
 .rememberLabel {
@@ -125,7 +125,7 @@
 .forgot {
   background: transparent;
   border: none;
-  color: #667eea;
+  color: #1978A9;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -162,7 +162,7 @@
 /* submit button */
 .button {
   padding: 12px;
-  background-color: #667eea;
+  background-color: #1978A9;
   color: white;
   border: none;
   border-radius: 10px;

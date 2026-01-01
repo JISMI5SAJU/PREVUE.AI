@@ -31,7 +31,8 @@ export default function AuthPage() {
           
           {/* APP TITLE */}
           <div className={styles.header}>
-            <h1 className={styles.title}>PREVUE.AI</h1>
+            <img src="/images/prevue.svg" alt="P" className={styles.logo} />
+            <h1 className={styles.title}>REVUE.AI</h1>
           </div>
 
           {/* =============================

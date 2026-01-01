@@ -87,13 +87,27 @@ html, body {
 .header {
   text-align: center;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5.2px;
+}
+
+.logo {
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-right: -6px;
+  transform: translateY(-0.5px);
 }
 
 .title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
-  color: #667eea;
+  color: #1978A9;
   margin: 0;
+  line-height: 1;
 }
 
 .subtitle {
@@ -116,7 +130,7 @@ html, body {
 .toggleBtn {
   background: none;
   border: none;
-  color: #667eea;
+  color: #1978A9;
   cursor: pointer;
   font-weight: 600;
   text-decoration: underline;

@@ -206,7 +206,7 @@
   padding: 8px 12px;
   border-radius: 8px;
   font-weight: 700;
-  background: #667eea;
+  background: #1978A9;
   color: white;
   border: none;
   cursor: pointer;
@@ -215,7 +215,7 @@
 
 .btn.ghost {
   background: transparent;
-  color: #667eea;
+  color: #1978A9;
   border: 1px solid rgba(102,126,234,0.12);
 }
 

@@ -37,7 +37,10 @@ export default function Home() {
       {/* NAVBAR */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.logo}>PREVUE.AI</h1>
+          <div className={styles.logoContainer}>
+            <img src="/images/prevue.svg" alt="P" className={styles.logoImg} />
+            <h1 className={styles.logo}>REVUE.AI</h1>
+          </div>
 
           <nav className={styles.navbarRight}>
 

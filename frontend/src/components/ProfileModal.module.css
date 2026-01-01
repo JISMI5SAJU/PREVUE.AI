@@ -117,7 +117,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #1978A9;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
 }
 
@@ -133,7 +133,7 @@
 }
 
 .saveBtn {
-  background: #667eea;
+  background: #1978A9;
   color: white;
   padding: 10px 16px;
   font-size: 14px;

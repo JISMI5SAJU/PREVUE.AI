@@ -6,7 +6,7 @@
 .backBtn {
   background: none;
   border: none;
-  color: #667eea;
+  color: #1978A9;
   font-size: 16px;
   cursor: pointer;
   margin-bottom: 20px;
@@ -64,20 +64,20 @@
 }
 
 .option:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #1978A9;
+  color: #1978A9;
 }
 
 .option.selected {
-  background-color: #667eea;
+  background-color: #1978A9;
   color: white;
-  border-color: #667eea;
+  border-color: #1978A9;
 }
 
 .startBtn {
   width: 100%;
   padding: 14px;
-  background-color: #667eea;
+  background-color: #1978A9;
   color: white;
   border: none;
   border-radius: 6px;
