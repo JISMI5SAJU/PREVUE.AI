@@ -1,15 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import {
-  VideoOff,
-  Mic,
-  MicOff,
-  ChevronRight,
-  Loader2,
-  Video,
-  MessageSquare,
-} from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import CameraFeed from "./CameraFeed";
+import QuestionCard from "./QuestionCard";
 import styles from "./InterviewFlow.module.css";
 
 const API_BASE =
@@ -28,6 +21,7 @@ export default function InterviewFlow({
   /* ================= STATE ================= */
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [questionLoading, setQuestionLoading] = useState(false);
   const [question, setQuestion] = useState("");
   const [askedQuestions, setAskedQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
@@ -44,7 +38,6 @@ export default function InterviewFlow({
   /* ================= REFS ================= */
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const textareaRef = useRef(null);
 
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -56,8 +49,13 @@ export default function InterviewFlow({
   }, []);
 
   /* ================= FETCH QUESTION ================= */
-  const fetchQuestion = async (qnNumber, lastQ = "", lastA = "") => {
-    setLoading(true);
+  const fetchQuestion = async (qnNumber, lastQ = "", lastA = "", isInitial = false) => {
+    if (isInitial) {
+      setLoading(true);
+    } else {
+      setQuestionLoading(true);
+    }
+
     try {
       const res = await axios.post(
         `${API_BASE}/api/questions/next-question`,
@@ -85,23 +83,19 @@ export default function InterviewFlow({
     } catch {
       setQuestion("Failed to load question.");
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        setLoading(false);
+      } else {
+        setQuestionLoading(false);
+      }
     }
   };
 
   /* ================= INITIAL LOAD ================= */
   useEffect(() => {
-    fetchQuestion(1);
+    fetchQuestion(1, "", "", true);
     // eslint-disable-next-line
   }, []);
-
-  /* ================= AUTO GROW TEXTAREA ================= */
-  useEffect(() => {
-    if (!textareaRef.current) return;
-    textareaRef.current.style.height = "auto";
-    textareaRef.current.style.height =
-      textareaRef.current.scrollHeight + "px";
-  }, [answer]);
 
   /* ================= TTS ================= */
   const speakQuestion = (text) => {
@@ -218,12 +212,14 @@ export default function InterviewFlow({
   const handleNext = async () => {
     stopRecording();
 
+    // Store answer for current question
     setAnswers((prev) => {
       const copy = [...prev];
       copy[index] = answer;
       return copy;
     });
 
+    // If all questions answered, show feedback
     if (index === TOTAL_QUESTIONS - 1) {
       setInterviewComplete(true);
       stopCamera();
@@ -240,9 +236,27 @@ export default function InterviewFlow({
       return;
     }
 
+    // Move to next question and fetch it
+    const nextIndex = index + 1;
+    setIndex(nextIndex);
     setAnswer("");
-    setIndex((i) => i + 1);
-    fetchQuestion(index + 2, askedQuestions[index], answer);
+    fetchQuestion(nextIndex + 1, askedQuestions[index], answer, false);
+  };
+
+  const handleMicToggle = () => {
+    if (listening) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  const handleCameraToggle = () => {
+    if (cameraOn) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
   };
 
   /* ================= LOADING ================= */
@@ -291,40 +305,27 @@ export default function InterviewFlow({
           </span>
         </header>
 
+        <div className={styles.progressContainer}>
+          <div
+            className={styles.progressBar}
+            style={{ width: `${((index + 1) / TOTAL_QUESTIONS) * 100}%` }}
+          />
+        </div>
+
         <div className={styles.layout}>
-          <div className={styles.questionCard}>
-            <h2>{question}</h2>
-
-            <textarea
-              ref={textareaRef}
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Answer here…"
-            />
-
-            <div className={styles.actions}>
-              <div className={styles.leftControls}>
-                <button
-                  onClick={listening ? stopRecording : startRecording}
-                  className={listening ? styles.micActive : ""}
-                >
-                  {listening ? <Mic /> : <MicOff />}
-                </button>
-
-                <button
-                  onClick={cameraOn ? stopCamera : startCamera}
-                  className={cameraOn ? styles.cameraActive : ""}
-                >
-                  {cameraOn ? <Video /> : <VideoOff />}
-                </button>
-              </div>
-
-              <button onClick={handleNext} className={styles.nextButton}>
-                {index === TOTAL_QUESTIONS - 1 ? "Finish" : "Next"}
-                <ChevronRight />
-              </button>
-            </div>
-          </div>
+          <QuestionCard
+            question={question}
+            questionNumber={index + 1}
+            totalQuestions={TOTAL_QUESTIONS}
+            answer={answer}
+            onAnswerChange={setAnswer}
+            onMicToggle={handleMicToggle}
+            onCameraToggle={handleCameraToggle}
+            onNext={handleNext}
+            listening={listening}
+            cameraOn={cameraOn}
+            loading={questionLoading}
+          />
 
           <CameraFeed
             videoRef={videoRef}

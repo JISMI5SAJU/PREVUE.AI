@@ -1,0 +1,153 @@
+:root {
+  --primary: #3b82f6;
+  --muted: #9ca3af;
+  --bg-dark: #020617;
+}
+
+/* ================= QUESTION CARD ================= */
+.questionCard {
+  background: linear-gradient(180deg, #111827, var(--bg-dark));
+  border-radius: 22px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  color: #e5e7eb;
+  height: 100%;
+}
+
+.questionCard h2 {
+  font-size: 22px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+/* ================= LOADING STATE ================= */
+.loadingContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================= TEXTAREA ================= */
+.answerField {
+  flex: 1;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+  font-size: 15px;
+  color: #e5e7eb;
+  resize: none;
+  overflow: hidden;
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 16px;
+}
+
+.answerField::placeholder {
+  color: var(--muted);
+}
+
+.answerField:focus {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* ================= ACTIONS ================= */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actions button {
+  border: none;
+  cursor: pointer;
+}
+
+/* Left controls (mic + camera) */
+.leftControls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.leftControls button {
+  background: #1f2937;
+  padding: 12px;
+  border-radius: 14px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.leftControls button:hover {
+  color: white;
+  background: #374151;
+}
+
+/* Active mic state */
+.micActive {
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+  animation: micPulse 1.5s infinite;
+  color: white;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Camera active state */
+.cameraActive {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  color: white;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* Next Button */
+.nextButton {
+  background: var(--primary);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: filter 0.2s ease;
+}
+
+.nextButton:hover {
+  filter: brightness(1.05);
+}
+
+/* Animation */
+@keyframes micPulse {
+  0% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.15);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+  }
+}
