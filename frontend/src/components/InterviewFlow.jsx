@@ -21,6 +21,7 @@ export default function InterviewFlow({
   onBack,
 }) {
   /* ================= STATE ================= */
+  const [interviewId, setInterviewId] = useState(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [questionLoading, setQuestionLoading] = useState(false);
@@ -95,7 +96,20 @@ export default function InterviewFlow({
 
   /* ================= INITIAL LOAD ================= */
   useEffect(() => {
-    fetchQuestion(1, "", "", true);
+    const createInterview = async () => {
+      try {
+        const res = await axios.post(
+          `${API_BASE}/api/questions/create-interview`,
+          { role, mode, difficulty },
+          { withCredentials: true }
+        );
+        setInterviewId(res.data?.interviewId);
+      } catch (err) {
+        console.error("Failed to create interview:", err);
+      }
+      fetchQuestion(1, "", "", true);
+    };
+    createInterview();
     // eslint-disable-next-line
   }, []);
 
@@ -225,7 +239,11 @@ export default function InterviewFlow({
     axios.post(`${API_BASE}/api/questions/evaluate`, {
       question,
       answer: answer || "",
-      questionNumber: index + 1
+      questionNumber: index + 1,
+      role,
+      mode,
+      difficulty,
+      interviewId
     }).catch(console.error);
 
     // ================= MOVE TO NEXT QUESTION =================

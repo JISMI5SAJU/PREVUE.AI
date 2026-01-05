@@ -273,24 +273,20 @@ Respond in JSON format:
           return;
         }
 
-        // Find the most recent interview for this user (created today)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        let interviewResult = await InterviewResult.findOne({
-          userId,
-          createdAt: { $gte: today }
-        }).sort({ createdAt: -1 });
+        // Interview ID is required - frontend should always send it
+        if (!interviewId) {
+          console.error("Interview ID not provided in evaluation request");
+          return;
+        }
+
+        const interviewResult = await InterviewResult.findOne({
+          _id: interviewId,
+          userId
+        });
 
         if (!interviewResult) {
-          // Create new interview result for today
-          interviewResult = new InterviewResult({
-            userId,
-            role: role || "Unknown",
-            mode: mode || "Unknown",
-            difficulty: difficulty || "Medium",
-            questions: []
-          });
+          console.error(`Interview ${interviewId} not found for user ${userId}`);
+          return;
         }
 
         // Add or update question evaluation
