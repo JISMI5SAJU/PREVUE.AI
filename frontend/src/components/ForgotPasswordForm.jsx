@@ -1,39 +1,50 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import styles from "./ForgotPasswordForm.module.css"
+import { useState } from "react";
+import styles from "./ForgotPasswordForm.module.css";
 
 export default function ForgotPasswordForm({ onSuccess, onBack }) {
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setMessage("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    setLoading(true);
 
     try {
-      // TODO: Replace with real backend call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const res = await fetch("http://localhost:3000/api/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Request failed");
+      }
 
       setMessage(
         "If that email exists, we've sent a password reset link. Check your inbox."
-      )
-      setEmail("")
+      );
+      setEmail("");
 
-      // Go back to login after showing message
+      // Optional: go back to login after success
       setTimeout(() => {
-        if (onSuccess) onSuccess()
-      }, 1400)
+        if (onSuccess) onSuccess();
+      }, 1500);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.")
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div>
@@ -52,6 +63,7 @@ export default function ForgotPasswordForm({ onSuccess, onBack }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
 
@@ -67,9 +79,14 @@ export default function ForgotPasswordForm({ onSuccess, onBack }) {
       {message && <p className={styles.successMsg}>{message}</p>}
       {error && <p className={styles.errorMsg}>{error}</p>}
 
-      <button className={styles.backBtn} onClick={onBack}>
+      <button
+        type="button"
+        className={styles.backBtn}
+        onClick={onBack}
+        disabled={loading}
+      >
         Back to Login
       </button>
     </div>
-  )
+  );
 }

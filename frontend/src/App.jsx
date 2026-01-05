@@ -1,43 +1,57 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import AuthContext from "./context/AuthContext"
-import AuthPage from "./pages/AuthPage"
-import Home from "./pages/Home"
-import styles from "./App.module.css"
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
+import AuthContext from "./context/AuthContext";
+import AuthPage from "./pages/AuthPage";
+import Home from "./pages/Home";
+import ResetPassword from "./pages/ResetPassword";
+import styles from "./App.module.css";
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      setUser(JSON.parse(storedUser));
     }
-    setLoading(false)
-  }, [])
+    setLoading(false);
+  }, []);
 
   const handleLogin = (userData) => {
-    setUser(userData)
-    localStorage.setItem("user", JSON.stringify(userData))
-  }
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
 
   const handleLogout = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-  }
+    setUser(null);
+    localStorage.removeItem("user");
+  };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>
+    return <div className={styles.loading}>Loading...</div>;
   }
 
   return (
     <AuthContext.Provider value={{ user, handleLogin, handleLogout }}>
-      {user ? <Home /> : <AuthPage />}
+      <BrowserRouter>
+        <Routes>
+          {/* Reset password route MUST be accessible without login */}
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          {/* Main app */}
+          <Route
+            path="/*"
+            element={user ? <Home /> : <AuthPage />}
+          />
+        </Routes>
+      </BrowserRouter>
     </AuthContext.Provider>
-  )
+  );
 }
 
-export default App
+export default App;
