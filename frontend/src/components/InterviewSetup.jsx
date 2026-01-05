@@ -4,7 +4,7 @@ import { useState } from "react"
 import InterviewFlow from "./InterviewFlow"
 import styles from "./InterviewSetup.module.css"
 
-const ROLES = ["Frontend Developer", "Backend Developer", "Data Analyst", "Full Stack Developer", "DevOps Engineer"]
+const ROLES = ["Frontend Developer", "Backend Developer", "Software Developer", "Data Analyst", "Full Stack Developer", "DevOps Engineer"]
 const MODES = ["Technical", "HR", "Mixed"]
 const DIFFICULTIES = ["Easy", "Medium", "Hard"]
 

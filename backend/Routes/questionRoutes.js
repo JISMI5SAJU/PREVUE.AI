@@ -40,11 +40,21 @@ router.post("/next-question", async (req, res) => {
     6: "growth mindset, learning, or future goals"
   };
 
+  // Special guidance for Software Developer role
+  const roleGuidance = role === "Software Developer" 
+    ? `
+**MANDATORY: Software Developer questions MUST ONLY cover these 3 topics:**
+1. Data Structures & Algorithms (arrays, linked lists, trees, graphs, stacks, queues, hash maps, sorting, searching, Big O complexity analysis)
+2. Object-Oriented Programming (classes, objects, inheritance, polymorphism, encapsulation, abstraction, SOLID principles, design patterns like Factory, Singleton, Strategy, Observer)
+3. SQL & Databases (SELECT, JOIN, WHERE, GROUP BY, indexing, primary/foreign keys, normalization, schema design, query optimization, transactions)
+`
+    : "";
+
   let prompt = `
 You are a human interviewer conducting a ${mode} interview for a ${role}.
 Difficulty level: ${difficulty}.
 This is question ${qNum} out of 6.
-
+${roleGuidance}
 Conversation so far:
 ${historyText}
 
@@ -73,11 +83,11 @@ DO NOT repeat any topics from the conversation history above.
 Rules:
 - Ask ONE question only
 - Be direct and specific, not open-ended
-- Max 30 words
+- Max 40 words
 - Avoid essay-type or vague questions
 - Avoid repeating questions or topics from the conversation
 - Use simple, clear language
-- Examples: "What frameworks have you used?", "Describe your experience with X", "How would you handle Y?"
+${role === "Software Developer" ? "- **CRITICAL**: Question MUST be about Data Structures, Algorithms, OOP concepts, or SQL. NO other topics allowed." : ""}
 `;
 
   try {
@@ -96,7 +106,6 @@ Rules:
     );
 
     const data = await response.json();
-    console.log("Gemini raw response:", JSON.stringify(data, null, 2));
 
     const question =
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
