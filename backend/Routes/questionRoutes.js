@@ -32,16 +32,29 @@ router.post("/next-question", async (req, res) => {
 
   // Build prompt for Gemini question generation
   const questionTopics = {
-    1: "background, experience, or technical foundation",
-    2: "specific skills, tools, or technologies",
-    3: "real-world problem-solving or past projects",
-    4: "challenges faced or how you handle difficulties",
-    5: "teamwork, collaboration, or communication",
-    6: "growth mindset, learning, or future goals"
+    1: "core technical foundation and definitions",
+    2: "specific technical concepts or tools",
+    3: "implementation and practical application",
+    4: "problem-solving approach and methodology",
+    5: "advanced concepts or edge cases",
+    6: "best practices or optimization"
   };
 
+  // HR mode topics (behavioral, soft skills)
+  const hrQuestionTopics = {
+    1: "work style, motivations, and professional goals",
+    2: "handling challenges, conflicts, or difficult situations",
+    3: "teamwork, collaboration, and communication skills",
+    4: "leadership, initiative, or driving results",
+    5: "learning, growth mindset, and adaptability",
+    6: "culture fit, values, and long-term aspirations"
+  };
+
+  // Use HR topics for HR mode, technical topics otherwise
+  const selectedTopics = mode === "HR" ? hrQuestionTopics : questionTopics;
+
   // Special guidance for Software Developer role
-  const roleGuidance = role === "Software Developer" 
+  const roleGuidance = role === "Software Developer" && mode === "Technical"
     ? `
 **MANDATORY: Software Developer questions MUST ONLY cover these 3 topics:**
 1. Data Structures & Algorithms (arrays, linked lists, trees, graphs, stacks, queues, hash maps, sorting, searching, Big O complexity analysis)
@@ -50,15 +63,26 @@ router.post("/next-question", async (req, res) => {
 `
     : "";
 
+  // HR mode guidance
+  const modeGuidance = mode === "HR"
+    ? `
+**MANDATORY FOR HR MODE: Ask ONLY behavioral and soft skill questions.**
+- NO technical questions
+- NO coding, algorithms, or technology-specific topics
+- Focus on: work style, teamwork, problem-solving approach, communication, adaptability, values
+`
+    : "";
+
   let prompt = `
 You are a human interviewer conducting a ${mode} interview for a ${role}.
 Difficulty level: ${difficulty}.
 This is question ${qNum} out of 6.
+${modeGuidance}
 ${roleGuidance}
 Conversation so far:
 ${historyText}
 
-Focus for this question: ${questionTopics[qNum] || "general interview question"}
+Focus for this question: ${selectedTopics[qNum] || "general interview question"}
 `;
 
   // Add follow-up if previous answer exists
@@ -82,11 +106,13 @@ DO NOT repeat any topics from the conversation history above.
   prompt += `
 Rules:
 - Ask ONE question only
-- Be direct and specific, not open-ended
+- Be direct, specific, and practical - NOT open-ended
 - Max 40 words
-- Avoid essay-type or vague questions
+- Avoid: essay-type questions, vague questions, scenario descriptions, "describe a project/scenario", "explain a recent", "tell me about"
+- Ask FACTS-based questions requiring concrete answers (e.g., "What is X?", "How does X work?", "Define X")
 - Avoid repeating questions or topics from the conversation
 - Use simple, clear language
+- Ask for definitions, explanations of concepts, or comparisons
 ${role === "Software Developer" ? "- **CRITICAL**: Question MUST be about Data Structures, Algorithms, OOP concepts, or SQL. NO other topics allowed." : ""}
 `;
 
@@ -394,10 +420,10 @@ router.post("/finalize-interview", async (req, res) => {
 
     // Calculate total score (average of 4 metrics, excluding camera metrics for now)
     interviewResult.totalScore = Math.round(
-      ((interviewResult.overallCorrectness +
+      (interviewResult.overallCorrectness +
         interviewResult.overallDepth +
         interviewResult.overallPracticalExperience +
-        interviewResult.overallStructure) / 4) * 10
+        interviewResult.overallStructure) / 4 * 10
     ) / 10;
 
     // --- Generate Qualitative Feedback (Pros/Cons) ---

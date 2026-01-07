@@ -41,7 +41,7 @@ export default function InterviewHistory() {
   const calculateStats = (data) => {
     if (!data.length) return
 
-    const scores = data.map(d => d.totalScore || 0)
+    const scores = data.map(d => (d.totalScore || 0) * 10)
     const totalInterviews = data.length
     const averageScore = Math.round(scores.reduce((a, b) => a + b, 0) / totalInterviews)
     const bestScore = Math.max(...scores)
@@ -164,8 +164,8 @@ export default function InterviewHistory() {
                     </span>
                   </td>
                   <td>
-                    <span className={styles.scoreText} style={{ color: getScoreColor(interview.totalScore) }}>
-                      {interview.totalScore}%
+                    <span className={styles.scoreText} style={{ color: getScoreColor(interview.totalScore * 10) }}>
+                      {interview.totalScore * 10}%
                     </span>
                   </td>
                   <td>

@@ -92,7 +92,7 @@ export default function Dashboard() {
           </div>
           <div className={styles.statContent}>
             <h3>Average Score</h3>
-            <p className={styles.statValue}>{analytics.averageScore}%</p>
+            <p className={styles.statValue}>{Math.round(analytics.averageScore * 10)}%</p>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export default function Dashboard() {
           </div>
           <div className={styles.statContent}>
             <h3>Recent Score</h3>
-            <p className={styles.statValue}>{analytics.recentScore}%</p>
+            <p className={styles.statValue}>{Math.round(analytics.recentScore * 10)}%</p>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e2e8f0" />
                 <PolarAngleAxis dataKey="skill" stroke="#64748b" />
-                <PolarRadiusAxis stroke="#64748b" />
+                <PolarRadiusAxis stroke="#64748b" domain={[0, 10]} />
                 <Radar name="Your Skills" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
                 <Tooltip 
                   contentStyle={{background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px'}}
@@ -187,7 +187,7 @@ export default function Dashboard() {
               <div className={styles.activityDot}></div>
               <div className={styles.activityContent}>
                 <span className={styles.activityRole}>{interview.role}</span>
-                <span className={styles.activityScore}>{interview.score}%</span>
+                <span className={styles.activityScore}>{Math.round(interview.score * 10)}%</span>
               </div>
             </div>
           ))}
