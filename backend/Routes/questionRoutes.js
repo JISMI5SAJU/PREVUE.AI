@@ -95,6 +95,16 @@ const isSameTopicAsLastQuestion = (candidateQuestion = "", lastQuestion = "") =>
   return similarity >= 0.5;
 };
 
+const isOverusedSoftwareDevOpening = (question = "") => {
+  const normalized = normalizeQuestion(question);
+  if (!normalized) return false;
+
+  const hasGenericKickoff = /(hey there|to kick things off|walk me through a time)/.test(normalized);
+  const hasDataStructureTradeoff = /choose between.*data structure|two different data structures/.test(normalized);
+
+  return hasGenericKickoff || hasDataStructureTradeoff;
+};
+
 // Protect all endpoints
 router.use(authenticateToken);
 
@@ -180,9 +190,15 @@ router.post("/next-question", async (req, res) => {
   } = req.body || {};
 
   const qNum = Math.max(1, Math.min(TOTAL_QUESTIONS, Number(questionNumber) || 1));
+  const latestHistoryEntry = Array.isArray(history) && history.length > 0
+    ? history[history.length - 1]
+    : null;
+  const effectiveLastQuestion = lastQuestion || latestHistoryEntry?.question || "";
+  const effectiveLastAnswer = lastAnswer || latestHistoryEntry?.answer || "";
+
   const previousQuestions = [
     ...history.map((item) => item?.question).filter(Boolean),
-    lastQuestion,
+    effectiveLastQuestion,
   ].filter(Boolean);
 
   // Build conversation history text with answer quality analysis
@@ -216,9 +232,11 @@ router.post("/next-question", async (req, res) => {
   // Determine interview stage for adaptive question strategy
   const stage = qNum <= 3 ? "early" : qNum <= 6 ? "mid" : "late";
   
-  // Determine if we should go deeper on recent topics or explore new areas
+  // Cadence: opening -> periodic topic switch -> contextual follow-up.
+  // This guarantees visible follow-up behavior while preserving interview breadth.
+  const canFollowUp = Boolean(effectiveLastQuestion && effectiveLastAnswer);
   const shouldExploreNew = coveredTopics.length === 0 || qNum % 3 === 1;
-  const shouldGoDeeper = qNum > 3 && qNum % 3 !== 1;
+  const shouldGoDeeper = qNum > 1 && !shouldExploreNew && canFollowUp;
 
   // Special guidance for Software Developer role
   const roleGuidance = role === "Software Developer" && mode === "Technical"
@@ -272,6 +290,10 @@ ${interviewerContext}
 Interview conversation so far:
 ${historyText}
 
+Most recent context:
+${effectiveLastQuestion ? `- Last question: ${effectiveLastQuestion}` : "- Last question: N/A"}
+${effectiveLastAnswer ? `- Last answer: ${effectiveLastAnswer}` : "- Last answer: N/A"}
+
 Topics already discussed (never repeat):
 ${previousQuestions.length > 0 ? previousQuestions.map((q) => `- ${q}`).join("\n") : "None yet"}
 `;
@@ -286,6 +308,17 @@ This is the opening question of the interview. Start naturally and conversationa
 - Ask something that gets them talking about their ${mode === "HR" ? "work style and motivations" : isResumeBased ? "background and relevant experience" : "technical foundation"}
 - Keep it open enough for them to show their thinking, but specific enough to guide them
 `;
+
+    if (role === "Software Developer" && mode === "Technical" && !isResumeBased) {
+      prompt += `
+
+For this specific role, diversify the first question style:
+- DO NOT use greetings/openers like "Hey there" or "To kick things off"
+- DO NOT ask the common "choose between two data structures" opener
+- Pick exactly one opening lane for this interview: {debugging scenario, API/database design decision, OOP/design-pattern trade-off}
+- Keep it practical and role-realistic, not generic trivia
+`;
+    }
   } else if (shouldExploreNew) {
     prompt += `
 
@@ -296,17 +329,19 @@ Ask about a DIFFERENT area not covered yet in this interview:
 - Keep the flow natural, but ensure clear topic change
 - Use the previous question list and avoid overlap/paraphrase
 `;
-  } else if (shouldGoDeeper && lastQuestion && lastAnswer) {
+  } else if (shouldGoDeeper) {
     prompt += `
 
-FOLLOW-UP MODE FOR THIS QUESTION.
-Previous question: "${lastQuestion}"
-Candidate answer: "${lastAnswer}"
+FOLLOW-UP MODE REQUIRED FOR THIS QUESTION.
+Previous question: "${effectiveLastQuestion}"
+Candidate answer: "${effectiveLastAnswer}"
 
 Ask a deeper follow-up that:
+- Explicitly references one concrete detail from the candidate's answer
 - Probes a specific part of the candidate's answer
 - Requests clarification, trade-off, edge case, or concrete example
 - Tests depth on the same topic without repeating wording
+- Sounds like a natural continuation, not a topic reset
 `;
   } else if (history.length >= 1) {
     prompt += `
@@ -319,33 +354,31 @@ Ask the next natural question that:
 `;
   }
 
-  // Question generation guidelines - focus on naturalness not templates
+  // Question generation guidelines - natural spoken interviewer style
   const resumePhrasingRules = isResumeBased
     ? `
-- Vary the opening style - use different question formats each time
-- Never repeat the same phrase (e.g., don't say "Your resume mentions" twice)
-- Reference specific resume details naturally without feeling formulaic
+- Reference resume details naturally, as if you remembered what they said
+- Avoid repeating fixed lead-ins like "Your resume mentions" across multiple turns
 `
     : "";
 
   const questionGuidelines = `
-CRITICAL: Generate questions that FEEL NATURAL, not templated.
+CRITICAL: Sound like a thoughtful human interviewer in a live conversation.
 
-Format & Style:
+Voice & Style:
 - ONE question only
-- Max 40 words
-- Conversational tone - like a real interviewer speaking
-- Avoid famous interview question phrases or clichés
-- Vary sentence starters completely: "How", "What", "Why", "Can you", "Tell me", "Do you", "When", "If"
-- NO transitions like "Okay, let's move on to...", "Building on that...", "Alright, let's talk about..."
-- NO topic labels or announcements (e.g., don't say "Let's discuss inheritance")
-- Sound like YOU are genuinely curious about their answer, not reading from a script
+- Keep it concise (about 12-28 words unless depth requires slightly more)
+- Use natural spoken English and occasional contractions when it fits
+- Ask with curiosity, not as a checklist
+- Vary rhythm and phrasing so consecutive questions do not sound formulaic
+- Do not prepend labels like "Question 4" or scripted stage directions
 
 Quality Standards:
-- Ask for concrete details, not general explanations
+- Ask for concrete details, not generic definitions
 - Questions should reveal DEPTH of understanding, not just surface knowledge
 - Challenge them proportionally to interview stage: early=foundational, mid=practical, late=edge cases
 - If following up on a previous answer, reference what they actually said (not a summary)
+- In FOLLOW-UP MODE, include at least one context anchor from the candidate's latest answer
 - If asking fresh, make it feel like a natural thought progression
 - Obey mode instructions above strictly:
   - If prompt says "TOPIC SWITCH REQUIRED", choose a new topic area and do not continue the previous one
@@ -354,12 +387,9 @@ Quality Standards:
 
 AVOID:
 - Multiple questions in one ("What is X and why is it Y?")
-- Vague open-ended prompts  
-- "Tell me about your experience / a time when..."
-- "Describe a project / scenario"
-- Rhetorical framing
+- Empty filler phrases and corporate buzzword wording
+- Repeating nearly the same sentence structure in back-to-back turns
 - Repeating question topics from the list above
-- Starting with scripted transitions like "Okay, now" / "Let's move on"
 ${resumePhrasingRules}
 `;
 
@@ -395,8 +425,12 @@ ${resumePhrasingRules}
       question = generatedQuestion;
       const duplicate = isQuestionDuplicate(generatedQuestion, previousQuestions);
       const sameTopicInSwitchMode = shouldExploreNew && isSameTopicAsLastQuestion(generatedQuestion, lastQuestion);
+      const overusedSoftwareDevOpening =
+        qNum === 1 && role === "Software Developer" && mode === "Technical" && !isResumeBased
+          ? isOverusedSoftwareDevOpening(generatedQuestion)
+          : false;
 
-      if (!duplicate && !sameTopicInSwitchMode) {
+      if (!duplicate && !sameTopicInSwitchMode && !overusedSoftwareDevOpening) {
         break;
       }
     }
